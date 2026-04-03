@@ -1,0 +1,12 @@
+[project]
+name = "configuror"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "attrs>=26.1.0",
+    "fastmcp>=3.2.0",
+    "rich>=14.3.3",
+]
+
+[tool.ruff]
+line-length = 100
