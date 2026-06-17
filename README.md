@@ -1,7 +1,7 @@
 # configuror
 
 > [!CAUTION]
-> Human- or machine-generated, human-reviewed. Treat this repository as experimental and review the code before relying on it.
+> Machine-generated, human-reviewed.
 
 MCP proxy that adds persistent, configurable defaults to any MCP server's tools.
 
