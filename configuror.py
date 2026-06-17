@@ -8,8 +8,9 @@ For each upstream tool T, exposes:
 Hooks (--hook <import>) can intercept tool schemas, arguments, and results.
 
 Usage:
-    configuror.py [--hook <import>]... -- <upstream-mcp-command ...>
+    configuror.py [--hook <import>]... -- <upstream-command-or-url ...>
     configuror.py -- npx firecrawl-mcp
+    configuror.py -- https://mcp.example.com/mcp
     configuror.py --hook firecrawl_hooks -- npx firecrawl-mcp
 """
 
@@ -26,7 +27,7 @@ from pathlib import Path
 from typing import Literal
 
 from fastmcp import Client, FastMCP
-from fastmcp.client.transports import StdioTransport
+from fastmcp.client.transports import ClientTransport, StdioTransport, infer_transport
 from fastmcp.tools.function_tool import FunctionTool
 
 
@@ -169,7 +170,7 @@ def make_configure_schema(upstream_schema: dict[str, object]) -> dict[str, objec
 def register_proxy_pair(
     server: FastMCP,
     upstream_tool: object,
-    transport: StdioTransport,
+    transport: ClientTransport,
     hooks: list[object],
 ) -> None:
     name: str = upstream_tool.name
@@ -283,7 +284,11 @@ def load_hooks(import_paths: list[str]) -> list[object]:
     return [importlib.import_module(path) for path in import_paths]
 
 
-def build_transport(upstream_cmd: list[str]) -> StdioTransport:
+def build_transport(upstream_cmd: list[str]) -> ClientTransport:
+    # HTTP/SSE upstream: a single URL after "--" (streamable HTTP, or SSE for /sse endpoints)
+    if len(upstream_cmd) == 1 and upstream_cmd[0].startswith(("http://", "https://")):
+        return infer_transport(upstream_cmd[0])
+    # stdio upstream: command + args after "--", parent env passed through
     return StdioTransport(command=upstream_cmd[0], args=upstream_cmd[1:], env=dict(os.environ))
 
 

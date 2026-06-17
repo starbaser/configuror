@@ -9,7 +9,7 @@ configuror sits between an MCP client (like Claude Code) and any upstream MCP se
 - **Stored defaults** — parameters you set via `configure_<tool>` persist across calls and merge with call-time arguments (call-time wins).
 - **A paired `configure_<tool>`** — mirrors the original tool's schema with all fields made optional, plus a `_mode` parameter that controls how new values combine with existing defaults.
 
-The upstream server is specified after `--`. configuror connects via stdio, discovers tools, and proxies everything through.
+The upstream server is specified after `--`. configuror connects via stdio (for a command) or streamable HTTP / SSE (for a URL), discovers tools, and proxies everything through.
 
 ## Quick start
 
@@ -37,7 +37,15 @@ This wraps the Firecrawl MCP server. Every Firecrawl tool appears as-is, plus a 
 ## Usage
 
 ```
-configuror.py [--hook <import>]... -- <upstream-mcp-command>
+configuror.py [--hook <import>]... -- <upstream-command-or-url>
+```
+
+The spec after `--` is either a subprocess command (stdio upstream) or a single URL (streamable HTTP upstream, or SSE if the URL ends in `/sse`):
+
+```
+configuror.py -- npx firecrawl-mcp                  # stdio upstream
+configuror.py -- https://mcp.example.com/mcp        # streamable HTTP upstream
+configuror.py -- https://mcp.example.com/events/sse # SSE upstream
 ```
 
 ### Setting defaults
@@ -182,7 +190,7 @@ configuror uses FastMCP 3.x. At startup, a lifespan context manager runs before 
 
 1. Loads persisted state from `.configuror-state.json` if it exists.
 2. Parses CLI arguments to extract hook imports and the upstream command.
-3. Connects to the upstream MCP server via `StdioTransport` (passing through the parent process environment).
+3. Connects to the upstream MCP server via the inferred transport — `StdioTransport` for a command (passing through the parent process environment), or `StreamableHttpTransport` / `SSETransport` for a URL — selected automatically from whether the spec after `--` starts with `http://`/`https://`.
 4. Calls `list_tools()` on the upstream client to discover all available tools.
 5. For each upstream tool, constructs and registers two `FunctionTool` instances with hand-crafted JSON schemas (bypassing FastMCP's annotation-based schema generation).
 
