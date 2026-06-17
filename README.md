@@ -84,7 +84,7 @@ configure_search(scrapeOptions={"formats": ["html"]}, _mode="deep_merge")
 
 ## State persistence
 
-Defaults live in memory during runtime and auto-serialize to `.configuror-state.json` on exit. Persistence is triggered by both an `atexit` handler registered at startup and the lifespan teardown, ensuring state is saved whether the process exits normally or is terminated. On next startup, the file is loaded and all previously configured defaults are restored.
+Defaults live in memory during runtime and auto-serialize to `$XDG_STATE_HOME/configuror/state.json` (defaulting to `~/.local/state/configuror/state.json`) on exit. Override the path with the `CONFIGUROR_STATE_FILE` environment variable. Persistence is triggered by both an `atexit` handler registered at startup and the lifespan teardown, ensuring state is saved whether the process exits normally or is terminated. On next startup, the file is loaded and all previously configured defaults are restored.
 
 ## Hooks
 

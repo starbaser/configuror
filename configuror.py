@@ -32,8 +32,14 @@ from fastmcp.tools.function_tool import FunctionTool
 
 MergeMode = Literal["set", "merge", "deep_merge", "extend", "deep_extend"]
 
-STATE_FILE = Path(__file__).parent / ".configuror-state.json"
 _state: dict[str, dict[str, object]] = {}
+
+
+def state_file() -> Path:
+    if override := os.environ.get("CONFIGUROR_STATE_FILE"):
+        return Path(override)
+    base = Path(os.environ.get("XDG_STATE_HOME") or (Path.home() / ".local" / "state"))
+    return base / "configuror" / "state.json"
 
 
 # ---------------------------------------------------------------------------
@@ -43,12 +49,15 @@ _state: dict[str, dict[str, object]] = {}
 
 def load_state() -> None:
     global _state
-    if STATE_FILE.exists():
-        _state = json.loads(STATE_FILE.read_text())
+    path = state_file()
+    if path.exists():
+        _state = json.loads(path.read_text())
 
 
 def save_state() -> None:
-    STATE_FILE.write_text(json.dumps(_state, indent=2))
+    path = state_file()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(_state, indent=2))
 
 
 def get_defaults(tool_name: str) -> dict[str, object]:
@@ -306,5 +315,9 @@ async def lifespan(server: FastMCP):
 proxy = FastMCP("configuror", lifespan=lifespan)
 
 
-if __name__ == "__main__":
+def main() -> None:
     proxy.run()
+
+
+if __name__ == "__main__":
+    main()
