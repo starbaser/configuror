@@ -1,7 +1,7 @@
 # configuror
 
 > [!CAUTION]
-> Machine-generated, human-reviewed.
+> This README.md is machine-generated and human-reviewed.
 
 MCP proxy that adds persistent, configurable defaults to any MCP server's tools.
 
